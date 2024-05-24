@@ -1,0 +1,97 @@
+from tkinter import *
+from tkinter import messagebox
+from tkinter import ttk
+import tkinter as tk
+
+root=tk.Tk()
+root.title("Login")
+root.geometry("900x500")
+root.configure(bg = "white")
+
+def signin():
+    username=user.get()
+    password=word.get()
+
+    if username =='BrendonSC' and password=='Admin.12345':
+        app=Toplevel(root)
+        app.title('App')
+        app.geometry('900x500')
+        app.config(bg="#6A6767")
+
+        app.mainloop()
+
+    if username =='CherryAL' and password == 'Admin.12345':
+        app = Toplevel(root)
+        app.title('App')
+        app.geometry('900x500')
+        app.config(bg="#6A6767")
+
+        app.mainloop()
+
+    elif username!='BrendonSC' and 'CherryAL':
+        messagebox.showerror('Invalid!', 'Invalid username!')
+
+    elif password!='Admin.12345':
+        messagebox.showerror('Invalid!', 'Invalid password!')
+
+img=PhotoImage(file='C:/Users/brend/Downloads/login.png')
+Label(root, image=img, bg="white").place(x=50, y=50)
+
+frame=Frame(root, width=300, height=300, bg="white")
+frame.place(x=500, y=70)
+
+header=Label(frame, text = "Sign in", fg = "#87ceeb", bg = "white", font=("Helvetica", 20))
+header.place(x=105,y=5)
+
+#Username
+def on_enter(b):
+    user.delete(0, 'end')
+
+def on_leave(b):
+    name=user.get()
+    if name=='':
+      user.insert(0, 'Username')
+
+user=Entry(frame, width=25, fg="black", border=2, bg="white", font=("Helvetica", 10))
+user.place(x=60,y=80)
+user.insert(0, 'Username')
+user.bind('<FocusIn>', on_enter)
+user.bind('<FocusOut>', on_leave)
+
+#Password
+
+def on_entrance(a):
+    word.delete(0, 'end')
+
+def on_exit(a):
+    name=user.get()
+    if name=='':
+      word.insert(0, 'Password')
+
+word=Entry(frame, width=25, fg="black", border=2, bg="white", font=("Helvetica", 10))
+word.place(x=60,y=130)
+word.insert(0, 'Password')
+word.bind('<FocusIn>', on_entrance)
+word.bind('<FocusOut>', on_exit)
+
+
+#Sign in and create an account
+sign=Button(frame, width=25, text='Sign in', bg='#87ceeb', fg='black', font=("Helvetica", 10), command=signin)
+sign.place(x=45,y=180)
+create=Label(frame, text="Don't have an account?", fg='black', bg='white', font=("Helvetica", 10))
+create.place(x=45,y=230)
+style = ttk.Style()
+style.configure('Flat.TButton', relief='flat', borderwidth=0, bg='white', fg='light blue', font=("Helvetica", 10))
+def on_label_click(event):
+    print("Label clicked")
+
+# Create a label that looks like a button
+sign_up = tk.Label(frame, text="Sign up", fg='light blue', bg='white', cursor="hand2", font=("Helvetica", 10))
+sign_up.place(x=190, y=230)
+
+# Bind the click event to the label
+sign_up.bind("<Button-1>", on_label_click)
+
+
+
+root.mainloop()

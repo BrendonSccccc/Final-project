@@ -1,0 +1,228 @@
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
+import sqlite3
+from PIL import Image, ImageTk
+
+def connection():
+    conn = sqlite3.connect('apparel_inventory.db')
+    return conn
+
+def create_table():
+    conn = connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS apparel (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            price REAL NOT NULL,
+            quantity INTEGER NOT NULL,
+            size TEXT NOT NULL,
+            category TEXT NOT NULL,
+            date TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+create_table()
+
+def refresh_table():
+    for data in my_tree.get_children():
+        my_tree.delete(data)
+    conn = connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT item_id, name, price, quantity, size, category, date FROM apparel ORDER BY id DESC")
+    rows = cursor.fetchall()
+    for row in rows:
+        my_tree.insert("", "end", values=row)
+    conn.close()
+
+def clear_entries():
+    item_id_entry.delete(0, END)
+    name_entry.delete(0, END)
+    price_entry.delete(0, END)
+    quantity_entry.delete(0, END)
+    size_entry.delete(0, END)
+    category_entry.delete(0, END)
+
+def add_item():
+    item_id = item_id_entry.get().strip()
+    name = name_entry.get().strip()
+    price = price_entry.get().strip()
+    quantity = quantity_entry.get().strip()
+    size = size_entry.get().strip()
+    category = category_entry.get().strip()
+
+    if not all([item_id, name, price, quantity, size, category]):
+        messagebox.showwarning("Input error", "Please fill in all fields")
+        return
+
+    try:
+        conn = connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO apparel (item_id, name, price, quantity, size, category) VALUES (?, ?, ?, ?, ?, ?)",
+                       (item_id, name, price, quantity, size, category))
+        conn.commit()
+        conn.close()
+        refresh_table()
+        clear_entries()
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def update_item():
+    try:
+        selected_item = my_tree.selection()[0]
+        item_id = my_tree.item(selected_item)['values'][0]
+    except IndexError:
+        messagebox.showwarning("Selection error", "Please select an item to update")
+        return
+
+    name = name_entry.get().strip()
+    price = price_entry.get().strip()
+    quantity = quantity_entry.get().strip()
+    size = size_entry.get().strip()
+    category = category_entry.get().strip()
+
+    if not all([name, price, quantity, size, category]):
+        messagebox.showwarning("Input error", "Please fill in all fields")
+        return
+
+    try:
+        conn = connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE apparel SET name=?, price=?, quantity=?, size=?, category=? WHERE item_id=?",
+                       (name, price, quantity, size, category, item_id))
+        conn.commit()
+        conn.close()
+        refresh_table()
+        clear_entries()
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def delete_item():
+    try:
+        selected_item = my_tree.selection()[0]
+        item_id = my_tree.item(selected_item)['values'][0]
+    except IndexError:
+        messagebox.showwarning("Selection error", "Please select an item to delete")
+        return
+
+    try:
+        conn = connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM apparel WHERE item_id=?", (item_id,))
+        conn.commit()
+        conn.close()
+        refresh_table()
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def search_item():
+    item_id = item_id_entry.get().strip()
+    name = name_entry.get().strip()
+    price = price_entry.get().strip()
+    quantity = quantity_entry.get().strip()
+    size = size_entry.get().strip()
+    category = category_entry.get().strip()
+
+    query = "SELECT item_id, name, price, quantity, size, category, date FROM apparel WHERE"
+    criteria = []
+    params = []
+
+    if item_id:
+        criteria.append(" item_id LIKE ?")
+        params.append(f"%{item_id}%")
+    if name:
+        criteria.append(" name LIKE ?")
+        params.append(f"%{name}%")
+    if price:
+        criteria.append(" price LIKE ?")
+        params.append(f"%{price}%")
+    if quantity:
+        criteria.append(" quantity LIKE ?")
+        params.append(f"%{quantity}%")
+    if size:
+        criteria.append(" size LIKE ?")
+        params.append(f"%{size}%")
+    if category:
+        criteria.append(" category LIKE ?")
+        params.append(f"%{category}%")
+
+    if not criteria:
+        messagebox.showwarning("Input error", "Please fill in at least one field to search")
+        return
+
+    query += " AND".join(criteria)
+
+    conn = connection()
+    cursor = conn.cursor()
+    cursor.execute(query, tuple(params))
+    rows = cursor.fetchall()
+    conn.close()
+
+    for data in my_tree.get_children():
+        my_tree.delete(data)
+    for row in rows:
+        my_tree.insert("", "end", values=row)
+
+# Create the main window
+window = Tk()
+window.title("Apparel Inventory Management System")
+window.geometry("1920x1080")
+
+# Style
+style = ttk.Style()
+style.theme_use("clam")
+style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"), foreground="blue")
+style.configure("Treeview", font=("Helvetica", 10), background="lightgrey", fieldbackground="lightgrey", rowheight=25)
+style.map("Treeview", background=[("selected", "green")])
+
+# Frame for the table
+frame = Frame(window, bg="white")
+frame.pack(pady=20)
+
+# Table
+columns = ("item_id", "name", "price", "quantity", "size", "category", "date")
+my_tree = ttk.Treeview(frame, columns=columns, show="headings", height=10)
+for col in columns:
+    my_tree.heading(col, text=col)
+my_tree.pack(side=LEFT)
+
+# Scrollbar
+scrollbar = Scrollbar(frame, orient=VERTICAL, command=my_tree.yview)
+scrollbar.pack(side=RIGHT, fill=Y)
+my_tree.configure(yscroll=scrollbar.set)
+
+# Entry fields
+entry_frame = Frame(window, bg="white")
+entry_frame.pack(pady=20)
+
+labels = ["Item ID", "Name", "Price", "Quantity", "Size", "Category"]
+entries = []
+for i, label in enumerate(labels):
+    Label(entry_frame, text=label, bg="white", font=("Helvetica", 12)).grid(row=i, column=0, padx=10, pady=5, sticky=W)
+    entry = Entry(entry_frame, font=("Helvetica", 12))
+    entry.grid(row=i, column=1, padx=10, pady=5)
+    entries.append(entry)
+
+item_id_entry, name_entry, price_entry, quantity_entry, size_entry, category_entry = entries
+
+# Buttons
+button_frame = Frame(window, bg="white")
+button_frame.pack(pady=20)
+
+button_names = ["Add Item", "Update Item", "Delete Item", "Search Item", "Clear Entries"]
+button_commands = [add_item, update_item, delete_item, search_item, clear_entries]
+button_colors = ["#4CAF50", "#FF9800", "#F44336", "#2196F3", "#9E9E9E"]
+
+for i, (name, cmd, color) in enumerate(zip(button_names, button_commands, button_colors)):
+    button = Button(button_frame, text=name, command=cmd, font=("Helvetica", 12), bg=color, fg="white", width=12)
+    button.grid(row=0, column=i, padx=10)
+
+# Initialize and populate the table
+refresh_table()
+
+# Start the main event loop
+window.mainloop()
