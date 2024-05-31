@@ -1,0 +1,72 @@
+from tkinter import *
+from tkinter import messagebox
+import tkinter as tk
+
+window = Tk()
+window.title("Sign up")
+window.geometry("900x500")
+window.configure(bg="white")
+
+# Create a frame
+frame = Frame(window, width=900, height=500, bg="white")
+frame.place(x=0, y=0)
+
+header = Label(frame, text="Sign up", fg="#87ceeb", bg="white", font=("Helvetica", 20))
+header.place(x=375, y=50)
+
+# Username
+def on_enter(e):
+    if user1.get() == 'Username':
+        user1.delete(0, 'end')
+
+def on_leave(e):
+    if user1.get() == '':
+        user1.insert(0, 'Username')
+
+user1 = Entry(frame, width=30, bd=1, font=("Helvetica", 14), highlightbackground='#F0B5BE', highlightthickness=1)
+user1.place(x=280, y=130, height=40)
+user1.insert(0, 'Username')
+user1.bind('<FocusIn>', on_enter)
+user1.bind('<FocusOut>', on_leave)
+
+# Password
+def on_enter_pass(e):
+    if word1.get() == 'Password':
+        word1.delete(0, 'end')
+
+def on_leave_pass(e):
+    if word1.get() == '':
+        word1.config(show='')
+        word1.insert(0, 'Password')
+
+word1 = Entry(frame, width=30, bd=1, font=("Helvetica", 14), highlightbackground='#F0B5BE', highlightthickness=1)
+word1.place(x=280, y=200, height=40)
+word1.insert(0, 'Password')
+word1.bind('<FocusIn>', on_enter_pass)
+word1.bind('<FocusOut>', on_leave_pass)
+
+# Confirm Password
+def on_enter_conf(e):
+    if word2.get() == 'Confirm password':
+        word2.delete(0, 'end')
+
+def on_leave_conf(e):
+    if word2.get() == '':
+        word2.config(show='')
+        word2.insert(0, 'Confirm password')
+
+word2 = Entry(frame, width=30, bd=1, font=("Helvetica", 14), highlightbackground='#F0B5BE', highlightthickness=1)
+word2.place(x=280, y=270, height=40)
+word2.insert(0, 'Confirm password')
+word2.bind('<FocusIn>', on_enter_conf)
+word2.bind('<FocusOut>', on_leave_conf)
+
+#Sign up
+signup_button = Button(frame, text="Sign Up", width=20, height=1, font=("Helvetica", 14), bg="#89CFF0", fg="white")
+signup_button.place(x=320, y=340)
+
+back = Button(frame, text="Back to Login", width=15, font=("Helvetica", 10, 'bold'), bg="#89CFF0", fg="white")
+back.place(x=650, y=450, height=30)
+
+
+window.mainloop()
